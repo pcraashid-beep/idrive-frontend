@@ -12,7 +12,7 @@ export default function App() {
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '' })
 
   const timeSlots = ["09:00 AM", "10:30 AM", "12:00 PM", "01:30 PM", "03:00 PM", "04:30 PM"]
-  const backendURL = "https://idrive-backend-live.onrender.com"; // 🚀 DOUBLE CHECK THIS
+  const backendURL = "https://idrive-api.onrender.com"; // 🚀 DOUBLE CHECK THIS
 
   useEffect(() => {
     fetch(`${backendURL}/api/availability`)
