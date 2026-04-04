@@ -15,8 +15,8 @@ export default function App() {
   const limits = { 10: 15, 15: 20, 22: 30 };
 
   useEffect(() => {
-    // 🚀 NEW CLOUD URL HERE 🚀
-    fetch('https://idrive-backend.onrender.com/api/bookings')
+    // 🚀 NEW CLOUD URL HERE 🚀 (Double check this matches your Render dashboard!)
+    fetch('https://idrive-api.onrender.com/api/bookings')
       .then(res => res.json())
       .then(data => setExistingBookings(data));
   }, []);
@@ -71,8 +71,8 @@ export default function App() {
       scheduledDates: schedule.dates
     };
 
-    // 🚀 NEW CLOUD URL HERE 🚀
-    const res = await fetch('https://idrive-backend.onrender.com/api/bookings', {
+    // 🚀 NEW CLOUD URL HERE 🚀 (Double check this matches your Render dashboard!)
+    const res = await fetch('https://idrive-api.onrender.com/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(finalData)
