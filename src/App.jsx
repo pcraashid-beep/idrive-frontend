@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css'; // The default calendar styling
+import 'react-calendar/dist/Calendar.css'; 
 import './App.css';
 
 export default function App() {
   const [step, setStep] = useState('COURSE');
   const [courseType, setCourseType] = useState(10);
-  const [selectedTrainer, setSelectedTrainer] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Now a real Date object!
+  const [selectedDate, setSelectedDate] = useState(new Date()); 
   const [preferredTime, setPreferredTime] = useState("09:00 AM");
   const [itinerary, setItinerary] = useState([]);
   const [busySlots, setBusySlots] = useState([]);
@@ -17,13 +16,7 @@ export default function App() {
   const timeSlots = ["09:00 AM", "10:30 AM", "12:00 PM", "01:30 PM", "03:00 PM", "04:30 PM"];
   const backendURL = "https://idrive-api.onrender.com";
 
-  // --- MOCK TRAINER DATA ---
-  const trainers = [
-    { id: 1, name: "Imran", car: "Skoda Fabia", slotsOpen: 12 },
-    { id: 2, name: "Sarah", car: "Toyota Prius", slotsOpen: 5 },
-    { id: 3, name: "David", car: "Honda Civic", slotsOpen: 8 }
-  ];
-
+  // Fetch all bookings from the server
   useEffect(() => {
     fetch(`${backendURL}/api/availability`)
       .then(res => res.json())
@@ -31,7 +24,7 @@ export default function App() {
       .catch(err => console.error("Error fetching availability:", err));
   }, []);
 
-  // Helper functions for Real Dates
+  // Helper functions for Dates
   const formatDate = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const addDays = (date, days) => {
     const result = new Date(date);
@@ -39,19 +32,22 @@ export default function App() {
     return result;
   };
 
+  // 🚀 THE NEW ENTERPRISE FLEET LOGIC 🚀
   const isSlotBusy = (dateStr, time) => {
-    // In the future, we will also check: s.trainer === selectedTrainer.name
-    return busySlots.some(s => s.date === dateStr && s.timeSlot === time);
+    // Count how many people are already booked for this exact date and time
+    const count = busySlots.filter(s => s.date === dateStr && s.timeSlot === time).length;
+    // Return TRUE (Busy) ONLY if 4 cars are already taken
+    return count >= 4; 
   };
 
-  // --- UPGRADED SMART-FILL ENGINE ---
+  // The Smart-Fill Engine
   const startSmartFill = (startDate, time) => {
     if (!startDate) return alert("Please select a date first!");
     
     let tempItinerary = [];
     let currentDate = new Date(startDate);
     let lessonsFound = 0;
-    let limitSafety = 0; // Prevents infinite loops if fully booked
+    let limitSafety = 0; 
 
     while (lessonsFound < courseType && limitSafety < 60) {
       let dateString = formatDate(currentDate);
@@ -70,7 +66,6 @@ export default function App() {
     }
     
     setItinerary(tempItinerary);
-    console.table(tempItinerary);
     setStep('REGISTRATION');
   };
 
@@ -80,7 +75,6 @@ export default function App() {
     setConflictDate(null);
     
     if (updatedItinerary.length < courseType) {
-      // Resume from the day AFTER the conflict
       let lastDate = new Date(conflictDate);
       let currentDate = addDays(lastDate, 1);
       let finalItin = [...updatedItinerary];
@@ -115,11 +109,10 @@ export default function App() {
     const finalData = {
       ...formData,
       courseType,
-      trainer: selectedTrainer.name, // Sending trainer to backend!
-      car: selectedTrainer.car,
       itinerary,
       startDate: itinerary[0].date,
-      endDate: itinerary[itinerary.length - 1].date
+      endDate: itinerary[itinerary.length - 1].date,
+      status: "Unassigned" // New field! You will assign a trainer in the Admin Panel later
     };
 
     try {
@@ -143,43 +136,22 @@ export default function App() {
         <div className="step-container fade-in">
           <h2>Step 1: Select Your Package</h2>
           <div className="course-options">
-            <button className="course-card" onClick={() => {setCourseType(10); setStep('TRAINER')}}>10 Lessons</button>
-            <button className="course-card" onClick={() => {setCourseType(15); setStep('TRAINER')}}>15 Lessons</button>
-            <button className="course-card" onClick={() => {setCourseType(22); setStep('TRAINER')}}>22 Lessons</button>
+            <button className="course-card" onClick={() => {setCourseType(10); setStep('CALENDAR')}}>10 Lessons</button>
+            <button className="course-card" onClick={() => {setCourseType(15); setStep('CALENDAR')}}>15 Lessons</button>
+            <button className="course-card" onClick={() => {setCourseType(22); setStep('CALENDAR')}}>22 Lessons</button>
           </div>
-        </div>
-      )}
-
-      {step === 'TRAINER' && (
-        <div className="step-container fade-in">
-          <h2>Step 2: Choose Your Instructor</h2>
-          <div className="trainer-grid">
-            {trainers.map(trainer => (
-              <div 
-                key={trainer.id} 
-                className="trainer-card"
-                onClick={() => {setSelectedTrainer(trainer); setStep('CALENDAR')}}
-              >
-                <h3>{trainer.name}</h3>
-                <p className="car-badge">🚗 {trainer.car}</p>
-                <p className="availability-badge">📅 {trainer.slotsOpen} slots open</p>
-              </div>
-            ))}
-          </div>
-          <button className="back-btn" onClick={() => setStep('COURSE')}>← Back</button>
         </div>
       )}
 
       {step === 'CALENDAR' && (
         <div className="step-container fade-in">
-          <h2>Step 3: Start Date & Time</h2>
-          <p>Instructor: <strong>{selectedTrainer?.name}</strong> ({selectedTrainer?.car})</p>
+          <h2>Step 2: Select Start Date & Time</h2>
           
           <div className="calendar-wrapper">
             <Calendar 
               onChange={setSelectedDate} 
               value={selectedDate} 
-              minDate={new Date()} // Prevents picking dates in the past
+              minDate={new Date()} 
             />
           </div>
 
@@ -191,7 +163,7 @@ export default function App() {
           </div>
           
           <div className="action-buttons">
-            <button className="back-btn" onClick={() => setStep('TRAINER')}>← Back</button>
+            <button className="back-btn" onClick={() => setStep('COURSE')}>← Back</button>
             <button className="primary-button" onClick={() => startSmartFill(selectedDate, preferredTime)}>Generate Schedule</button>
           </div>
         </div>
@@ -199,8 +171,8 @@ export default function App() {
 
       {step === 'CONFLICT' && (
         <div className="step-container fade-in">
-          <h2 className="warning">⚠️ Slot Conflict on {conflictDate}</h2>
-          <p>Your preferred time ({preferredTime}) is taken. Pick an alternative for <strong>only this day</strong>:</p>
+          <h2 className="warning">⚠️ Capacity Reached on {conflictDate}</h2>
+          <p>All vehicles are booked at <strong>{preferredTime}</strong> on this day. Please pick an alternative time for <strong>only this day</strong>:</p>
           <div className="time-slot-grid">
             {timeSlots.map(t => (
               <button 
@@ -209,7 +181,7 @@ export default function App() {
                 disabled={isSlotBusy(conflictDate, t)}
                 onClick={() => resolveConflict(t)}
               >
-                {t} {isSlotBusy(conflictDate, t) ? '(Busy)' : ''}
+                {t} {isSlotBusy(conflictDate, t) ? '(Full)' : ''}
               </button>
             ))}
           </div>
@@ -218,11 +190,7 @@ export default function App() {
 
       {step === 'REGISTRATION' && (
         <div className="step-container fade-in">
-          <h2>Step 4: Confirm & Book</h2>
-          <div className="review-box">
-            <p>Instructor: <strong>{selectedTrainer?.name}</strong></p>
-            <p>Vehicle: <strong>{selectedTrainer?.car}</strong></p>
-          </div>
+          <h2>Step 3: Confirm & Book</h2>
           <div className="itinerary-preview">
             {itinerary.map((item, idx) => (
               <div key={idx} className="itin-row">
@@ -242,8 +210,9 @@ export default function App() {
       {step === 'SUCCESS' && (
         <div className="step-container success-msg fade-in">
           <h2>🎉 Congratulations!</h2>
-          <p>Your {courseType}-lesson course with {selectedTrainer?.name} is confirmed!</p>
+          <p>Your {courseType}-lesson course is confirmed!</p>
           <p>First lesson: {itinerary[0]?.date} at {itinerary[0]?.timeSlot}</p>
+          <p><em>Your instructor details will be emailed to you shortly.</em></p>
           <button className="primary-button" onClick={() => window.location.reload()}>Book Another</button>
         </div>
       )}
